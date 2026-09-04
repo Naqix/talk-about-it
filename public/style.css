@@ -1,0 +1,41 @@
+:root {
+  --text: #1c1917;
+  --muted: #78716c;
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --border: #e7e5e4;
+  --accent: #1c1917;
+
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+h1 {
+  font-size: 28px;
+  margin: 0 0 24px;
+}
+
+a {
+  color: inherit;
+}
+
+.layout {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.muted {
+  color: var(--muted);
+}
