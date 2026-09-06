@@ -44,6 +44,9 @@ page_start("Start", $user);
           <li class="group">
             <span class="groupName"><?= htmlspecialchars($group["name"]) ?></span>
             <span class="muted"><?= $group["role"] === "administrator" ? "Administratör" : "Medlem" ?></span>
+<?php if ($group["role"] === "administrator"): ?>
+            <a href="/manage_group.php?group_id=<?= (int) $group["id"] ?>" class="button secondary">Hantera</a>
+<?php endif; ?>
           </li>
 <?php endforeach; ?>
         </ul>
