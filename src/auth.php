@@ -36,6 +36,17 @@ function require_login($pdo) {
   return $user;
 }
 
+function require_group_administrator($pdo, $group_id, $user_id) {
+  $statement = $pdo->prepare("select role from memberships where group_id = ? and user_id = ?");
+  $statement->execute([$group_id, $user_id]);
+  $membership = $statement->fetch();
+
+  if ($membership === false || $membership["role"] !== "administrator") {
+    header("Location: /index.php");
+    exit;
+  }
+}
+
 function login_user($user_id) {
   session_regenerate_id(true);
   $_SESSION["user_id"] = (int) $user_id;
