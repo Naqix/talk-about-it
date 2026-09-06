@@ -36,6 +36,16 @@ function require_login($pdo) {
   return $user;
 }
 
+function require_group_membership($pdo, $group_id, $user_id) {
+  $statement = $pdo->prepare("select user_id from memberships where group_id = ? and user_id = ?");
+  $statement->execute([$group_id, $user_id]);
+
+  if ($statement->fetch() === false) {
+    header("Location: /index.php");
+    exit;
+  }
+}
+
 function require_group_administrator($pdo, $group_id, $user_id) {
   $statement = $pdo->prepare("select role from memberships where group_id = ? and user_id = ?");
   $statement->execute([$group_id, $user_id]);
