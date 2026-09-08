@@ -17,49 +17,65 @@ require_group_administrator($pdo, $group_id, $user["id"]);
 $errors = [];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  $member_id = filter_var($_POST["user_id"] ?? "", FILTER_VALIDATE_INT);
+  if (isset($_POST["invitation"])) {
+    $token = bin2hex(random_bytes(32));
 
-  if ($member_id === false) {
-    header("Location: /index.php");
-    exit;
-  }
+    try {
+      $statement = $pdo->prepare("insert into invitations (token_hash, group_id) values (?, ?)");
+      $statement->execute([hash("sha256", $token), $group_id]);
 
-  if (isset($_POST["role"])) {
-    $role = is_string($_POST["role"]) ? $_POST["role"] : "";
+      $_SESSION["invitation_link"] = "http://" . ($_SERVER["HTTP_HOST"] ?? "") . "/invite.php?token=" . $token;
 
-    if (!in_array($role, ["member", "administrator"], true) || $member_id === (int) $user["id"]) {
+      header("Location: /manage_group.php?group_id=" . $group_id);
+      exit;
+    } catch (PDOException $error) {
+      $errors[] = "Kunde inte skapa inbjudanlänken";
+    }
+  } else {
+    $member_id = filter_var($_POST["user_id"] ?? "", FILTER_VALIDATE_INT);
+
+    if ($member_id === false) {
       header("Location: /index.php");
       exit;
     }
 
-    try {
-      $statement = $pdo->prepare("update memberships set role = ? where group_id = ? and user_id = ?");
-      $statement->execute([$role, $group_id, $member_id]);
+    if (isset($_POST["role"])) {
+      $role = is_string($_POST["role"]) ? $_POST["role"] : "";
 
-      header("Location: /manage_group.php?group_id=" . $group_id);
-      exit;
-    } catch (PDOException $error) {
-      $errors[] = "Kunde inte spara rollen";
-    }
-  } else {
-    try {
-      $pdo->beginTransaction();
-
-      $statement = $pdo->prepare("delete from membership_requests where group_id = ? and user_id = ?");
-      $statement->execute([$group_id, $member_id]);
-
-      if ($statement->rowCount() === 1) {
-        $statement = $pdo->prepare("insert into memberships (group_id, user_id, role) values (?, ?, ?)");
-        $statement->execute([$group_id, $member_id, "member"]);
+      if (!in_array($role, ["member", "administrator"], true) || $member_id === (int) $user["id"]) {
+        header("Location: /index.php");
+        exit;
       }
 
-      $pdo->commit();
+      try {
+        $statement = $pdo->prepare("update memberships set role = ? where group_id = ? and user_id = ?");
+        $statement->execute([$role, $group_id, $member_id]);
 
-      header("Location: /manage_group.php?group_id=" . $group_id);
-      exit;
-    } catch (PDOException $error) {
-      $pdo->rollBack();
-      $errors[] = "Godkänning misslyckades";
+        header("Location: /manage_group.php?group_id=" . $group_id);
+        exit;
+      } catch (PDOException $error) {
+        $errors[] = "Kunde inte spara rollen";
+      }
+    } else {
+      try {
+        $pdo->beginTransaction();
+
+        $statement = $pdo->prepare("delete from membership_requests where group_id = ? and user_id = ?");
+        $statement->execute([$group_id, $member_id]);
+
+        if ($statement->rowCount() === 1) {
+          $statement = $pdo->prepare("insert into memberships (group_id, user_id, role) values (?, ?, ?)");
+          $statement->execute([$group_id, $member_id, "member"]);
+        }
+
+        $pdo->commit();
+
+        header("Location: /manage_group.php?group_id=" . $group_id);
+        exit;
+      } catch (PDOException $error) {
+        $pdo->rollBack();
+        $errors[] = "Godkänning misslyckades";
+      }
     }
   }
 }
@@ -75,6 +91,9 @@ $statement = $pdo->prepare(
 );
 $statement->execute([$group_id, $user["id"]]);
 $members = $statement->fetchAll();
+
+$invitation_link = is_string($_SESSION["invitation_link"] ?? null) ? $_SESSION["invitation_link"] : "";
+unset($_SESSION["invitation_link"]);
 
 page_start("Hantera grupp", $user);
 ?>
@@ -118,5 +137,14 @@ page_start("Hantera grupp", $user);
 <?php endforeach; ?>
       </ul>
 <?php endif; ?>
+
+      <h2>Inbjudanlänk</h2>
+<?php if ($invitation_link !== ""): ?>
+      <p><?= htmlspecialchars($invitation_link) ?></p>
+<?php endif; ?>
+      <form method="post" action="/manage_group.php?group_id=<?= (int) $group_id ?>">
+        <input type="hidden" name="invitation" value="1">
+        <button type="submit" class="button">Skapa</button>
+      </form>
 <?php
 page_end();
