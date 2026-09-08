@@ -57,6 +57,14 @@ function require_group_administrator($pdo, $group_id, $user_id) {
   }
 }
 
+function after_login_location() {
+  if (isset($_SESSION["invitation"])) {
+    return "/invite.php";
+  }
+
+  return "/index.php";
+}
+
 function login_user($user_id) {
   session_regenerate_id(true);
   $_SESSION["user_id"] = (int) $user_id;

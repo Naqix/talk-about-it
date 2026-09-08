@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $errors[] = "Fel email eller lösenord";
     } else {
       login_user($user["id"]);
-      header("Location: /index.php");
+      header("Location: " . after_login_location());
       exit;
     }
   }

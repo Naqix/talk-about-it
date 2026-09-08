@@ -71,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       ]);
 
       login_user($pdo->lastInsertId());
-      header("Location: /index.php");
+      header("Location: " . after_login_location());
       exit;
     } catch (PDOException $error) {
       if ($error->errorInfo[1] !== 1062) {
