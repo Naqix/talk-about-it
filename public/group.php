@@ -14,6 +14,10 @@ if ($group_id === false) {
 
 require_group_membership($pdo, $group_id, $user["id"]);
 
+$statement = $pdo->prepare("select name from interest_groups where id = ?");
+$statement->execute([$group_id]);
+$group = $statement->fetch();
+
 function validate_discussion($post) {
   $errors = [];
 
@@ -64,10 +68,11 @@ $statement = $pdo->prepare("select id, subject from discussions where group_id =
 $statement->execute([$group_id]);
 $discussions = $statement->fetchAll();
 
-page_start("Grupp", $user);
+page_start($group["name"], $user);
 ?>
-      <h1>Diskussioner</h1>
+      <h1><?= htmlspecialchars($group["name"]) ?></h1>
 <?php error_list($errors); ?>
+      <h2>Diskussioner</h2>
       <div class="groupSection">
 <?php if (count($discussions) === 0): ?>
         <p class="muted">Det finns inga diskussioner just nu.</p>

@@ -122,7 +122,8 @@ ul.error {
 }
 
 .field input,
-.field textarea {
+.field textarea,
+select {
   font: inherit;
   padding: 8px 12px;
   border: 1px solid var(--border);
@@ -147,7 +148,6 @@ ul.error {
 .group {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 24px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -155,8 +155,14 @@ ul.error {
   padding: 16px;
 }
 
+.group form {
+  display: flex;
+  gap: 12px;
+}
+
 .groupName {
   font-weight: 500;
+  margin-right: auto;
 }
 
 .post {
