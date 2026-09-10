@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: talk_about_it
+      MYSQL_USER: forum
+      MYSQL_PASSWORD: forum
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_NAME: talk_about_it
+      DB_USER: forum
+      DB_PASSWORD: forum
+    volumes:
+      - ./public:/var/www/html
+      - ./src:/var/www/src
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
